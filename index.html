@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>NFC LINK LAB</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b0d10;color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:20px}
+    main{max-width:760px;margin:auto}
+    h1{font-size:28px;margin:0 0 8px}
+    p{color:#aeb7c2;line-height:1.45}
+    .card{background:#14181d;border:1px solid #252b33;border-radius:18px;padding:16px;margin:14px 0}
+    .status{display:flex;gap:8px;align-items:center;font-weight:700}
+    .dot{width:9px;height:9px;border-radius:50%;background:#777}
+    .dot.on{background:#74d67c;box-shadow:0 0 10px #74d67c88}
+    button{width:100%;padding:13px;border:0;border-radius:12px;background:#e6e9ed;color:#111;font-weight:800;margin:6px 0}
+    button.secondary{background:#252b33;color:#fff}
+    textarea{width:100%;min-height:128px;background:#090b0d;color:#a9d68b;border:1px solid #303741;border-radius:12px;padding:12px;font:11px/1.4 ui-monospace,monospace}
+    input{width:100%;padding:12px;border-radius:12px;border:1px solid #303741;background:#090b0d;color:#fff}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .metric{background:#090b0d;border-radius:12px;padding:12px;text-align:center}
+    .metric b{display:block;font-size:20px}
+    .metric span{font-size:10px;color:#8d98a5}
+    pre{white-space:pre-wrap;word-break:break-word;font-size:11px;color:#b8c0ca}
+    .tiny{font-size:11px;color:#818b96}
+  </style>
+</head>
+<body>
+<main>
+  <h1>NFC LINK LAB</h1>
+  <p>Prueba de conexión directa entre dos navegadores para el futuro cable Link virtual de Pokémon GB/GBC.</p>
+
+  <div class="card">
+    <div class="status"><span id="dot" class="dot"></span><span id="state">DESCONECTADO</span></div>
+    <div class="metrics">
+      <div class="metric"><b id="rtt">—</b><span>RTT ms</span></div>
+      <div class="metric"><b id="tx">0</b><span>TX paquetes</span></div>
+      <div class="metric"><b id="rx">0</b><span>RX paquetes</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Jugador A · Crear conexión</h3>
+    <button id="createOffer">CREAR OFERTA</button>
+    <textarea id="offerOut" placeholder="Aquí aparecerá la oferta..."></textarea>
+    <button class="secondary" data-copy="offerOut">COPIAR OFERTA</button>
+
+    <p class="tiny">Pásale este texto al Jugador B. Él generará una respuesta y te la devolverá.</p>
+
+    <textarea id="answerIn" placeholder="Pega aquí la respuesta del Jugador B..."></textarea>
+    <button id="applyAnswer">APLICAR RESPUESTA</button>
+  </div>
+
+  <div class="card">
+    <h3>Jugador B · Unirse</h3>
+    <textarea id="offerIn" placeholder="Pega aquí la oferta del Jugador A..."></textarea>
+    <button id="acceptOffer">ACEPTAR OFERTA</button>
+
+    <textarea id="answerOut" placeholder="Aquí aparecerá tu respuesta..."></textarea>
+    <button class="secondary" data-copy="answerOut">COPIAR RESPUESTA</button>
+  </div>
+
+  <div class="card">
+    <h3>Pruebas de enlace</h3>
+    <button id="ping" class="secondary">PING</button>
+    <button id="packet">ENVIAR PAQUETE LINK DE PRUEBA</button>
+    <input id="payload" value="01 60 00 FF 7E 42" />
+    <pre id="log"></pre>
+  </div>
+
+  <div class="card">
+    <h3>Siguiente integración</h3>
+    <p class="tiny">
+      Este laboratorio ya transporta bytes por WebRTC DataChannel. El archivo
+      <code>core-adapter.js</code> define el puente que deberá recibir/enviar los paquetes
+      <code>netpacket</code> de DoubleCherryGB. Cuando el core WASM compile, ese adaptador
+      será el punto de unión.
+    </p>
+  </div>
+
+  <script src="./core-adapter.js"></script>
+  <script src="./link.js"></script>
+</main>
+</body>
+</html>
