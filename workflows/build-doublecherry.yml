@@ -1,0 +1,66 @@
+name: Build DoubleCherryGB WASM experiment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-core:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout lab
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential git python3 pkg-config p7zip-full zip \
+            binutils-mips-linux-gnu curl wget jq
+
+      - name: Install Emscripten
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$HOME/emsdk"
+          cd "$HOME/emsdk"
+          ./emsdk install latest
+          ./emsdk activate latest
+
+      - name: Clone DoubleCherryGB
+        run: |
+          git clone --depth 1 https://github.com/TimOelrichs/doublecherryGB-libretro.git doublecherry
+
+      - name: Inspect Makefile targets
+        shell: bash
+        run: |
+          grep -in "emscripten\|web\|platform" doublecherry/Makefile | head -100 || true
+
+      - name: Compile core with Emscripten
+        shell: bash
+        run: |
+          source "$HOME/emsdk/emsdk_env.sh"
+          cd doublecherry
+
+          set +e
+          emmake make platform=emscripten -j2 2>&1 | tee ../doublecherry-build.log
+          STATUS=${PIPESTATUS[0]}
+          set -e
+
+          echo "Build status: $STATUS"
+          find . -maxdepth 4 -type f \( -name "*.bc" -o -name "*.a" -o -name "*.wasm" -o -name "*libretro*" \) \
+            -print | tee ../doublecherry-artifacts.txt
+
+          # Do not abort before logs are uploaded; the build result itself is the experiment.
+          exit 0
+
+      - name: Package experimental outputs
+        run: |
+          mkdir -p output
+          cp doublecherry-build.log output/ || true
+          cp doublecherry-artifacts.txt output/ || true
+          find doublecherry -type f \( -name "*.bc" -o -name "*.a" -o -name "*.wasm" \) \
+            -exec cp --parents {} output/ \; || true
+
+      - name: Upload build result
+        uses: actions/upload-artifact@v4
+        with:
+          name: doublecherry-wasm-experiment
+          path: output
+          if-no-files-found: warn
